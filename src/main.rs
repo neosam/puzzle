@@ -13,7 +13,16 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_startup_system(setup)
+        .add_system(select_tile)
         .run();
+}
+
+#[derive(Component)]
+pub struct Tile;
+
+pub struct Materials {
+    default_tile: Handle<StandardMaterial>,
+    highlighted_tile: Handle<StandardMaterial>,
 }
 
 fn setup(
@@ -34,10 +43,20 @@ fn setup(
     commands.spawn_bundle(camera);
 
     let texture: Handle<Image> = asset_server.load("icon.png");
-    let material = materials.add(StandardMaterial {
-        base_color_texture: Some(texture),
-        ..Default::default()
-    });
+    let materials = Materials {
+        default_tile: materials.add(StandardMaterial {
+            base_color_texture: Some(texture.clone()),
+            emissive_texture: Some(texture.clone()),
+            emissive: Color::WHITE,
+            perceptual_roughness: 1.0,
+            ..Default::default()
+        }),
+        highlighted_tile: materials.add(StandardMaterial {
+            base_color_texture: Some(texture),
+            base_color: Color::ALICE_BLUE,
+            ..Default::default()
+        }),
+    };
 
     let width = 4;
     let height = 4;
@@ -55,7 +74,7 @@ fn setup(
 
             let object = PbrBundle {
                 mesh,
-                material: material.clone(),
+                material: materials.default_tile.clone(),
                 transform: Transform::from_xyz(
                     space * x as f32 - width as f32 / 2.0,
                     space * (height - y) as f32 - height as f32 / 2.0,
@@ -63,9 +82,11 @@ fn setup(
                 ),
                 ..Default::default()
             };
-            commands.spawn_bundle(object);
+            commands.spawn_bundle(object).insert(Tile);
         }
     }
+
+    commands.insert_resource(materials);
 }
 
 fn generate_tile_mesh(upper_left: Vec2, lower_right: Vec2) -> Mesh {
@@ -100,4 +121,39 @@ fn generate_tile_mesh(upper_left: Vec2, lower_right: Vec2) -> Mesh {
     );
     mesh.set_indices(Some(Indices::U32(vec![0, 1, 2, 0, 2, 3])));
     mesh
+}
+
+pub fn select_tile(
+    mut tile_query: Query<(&GlobalTransform, &mut Handle<StandardMaterial>), With<Tile>>,
+    camera_query: Query<(&Camera, &GlobalTransform)>,
+    mut mouse_motion_events: EventReader<CursorMoved>,
+    materials: Res<Materials>,
+) {
+    for event in mouse_motion_events.iter() {
+        bevy::log::info!("Mouse event");
+        let (camera, camera_transform): (&Camera, &GlobalTransform) = camera_query.single();
+        for (tile_transform, mut material) in tile_query.iter_mut() {
+            if let (Some(lower_left), Some(upper_right)) = (
+                camera.world_to_viewport(
+                    camera_transform,
+                    tile_transform.translation() + Vec3::new(-1.0, -1.0, 0.0),
+                ),
+                camera.world_to_viewport(
+                    camera_transform,
+                    tile_transform.translation() + Vec3::new(1.0, 1.0, 0.0),
+                ),
+            ) {
+                if event.position.x >= lower_left.x
+                    && event.position.y >= lower_left.y
+                    && event.position.x <= upper_right.x
+                    && event.position.y <= upper_right.y
+                {
+                    bevy::log::info!("Hover!");
+                    *material = materials.highlighted_tile.clone();
+                } else {
+                    *material = materials.default_tile.clone();
+                }
+            }
+        }
+    }
 }
