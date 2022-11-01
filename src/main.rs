@@ -27,12 +27,16 @@ pub struct Tile;
 
 #[derive(Component)]
 pub struct Selected {
-    transform: Transform,
+    pub transform: Transform,
 }
 
 pub struct Drag {
-    start_pos: Vec2,
-    in_progress: bool,
+    pub start_pos: Vec2,
+    pub in_progress: bool,
+}
+
+pub struct ZIndexState {
+    pub z_index_state: f32,
 }
 
 pub struct Materials {
@@ -47,7 +51,7 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
     let camera = Camera3dBundle {
-        transform: Transform::from_xyz(0.0, 0.0, 2.0).looking_at(Vec3::ZERO, Vec3::Y),
+        transform: Transform::from_xyz(0.0, 0.0, 200.0).looking_at(Vec3::ZERO, Vec3::Y),
         projection: OrthographicProjection {
             scale: 1.0 / 30.0,
             ..Default::default()
@@ -106,6 +110,7 @@ fn setup(
         start_pos: Vec2::ZERO,
         in_progress: false,
     });
+    commands.insert_resource(ZIndexState { z_index_state: 2.0 })
 }
 
 fn generate_tile_mesh(upper_left: Vec2, lower_right: Vec2) -> Mesh {
@@ -193,9 +198,18 @@ pub fn select_tile(
     }
 }
 
-pub fn drag_start_end(mut drag: ResMut<Drag>, mouse_button_input: Res<Input<MouseButton>>) {
+pub fn drag_start_end(
+    mut drag: ResMut<Drag>,
+    mouse_button_input: Res<Input<MouseButton>>,
+    mut z_index_state: ResMut<ZIndexState>,
+    mut selected_query: Query<&mut Transform, With<Selected>>,
+) {
     if mouse_button_input.just_pressed(MouseButton::Left) {
         drag.in_progress = true;
+        for mut transform in selected_query.iter_mut() {
+            transform.translation.z = (*z_index_state).z_index_state;
+            z_index_state.z_index_state += 0.001;
+        }
     }
     if mouse_button_input.just_released(MouseButton::Left) {
         drag.in_progress = false;
