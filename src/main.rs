@@ -11,6 +11,7 @@ use bevy::{
         mesh::{Indices, PrimitiveTopology},
     },
 };
+use rand::prelude::*;
 
 fn main() {
     App::new()
@@ -81,6 +82,8 @@ fn setup(
     let height = 4;
     let space = 2.3;
 
+    let mut tiles = Vec::with_capacity(width * height);
+
     for x in 0..width {
         for y in 0..height {
             let mesh = meshes.add(generate_tile_mesh(
@@ -90,7 +93,15 @@ fn setup(
                     (y + 1) as f32 / height as f32,
                 ),
             ));
+            tiles.push(mesh);
+        }
+    }
 
+    let mut rng = rand::thread_rng();
+    for x in 0..width {
+        for y in 0..height {
+            let index = rng.gen::<usize>() % tiles.len();
+            let mesh = tiles.remove(index);
             let object = PbrBundle {
                 mesh,
                 material: materials.default_tile.clone(),
