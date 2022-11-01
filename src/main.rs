@@ -178,7 +178,7 @@ pub fn select_tile(
         return;
     }
     for event in mouse_motion_events.iter() {
-        drag.start_pos = event.position.clone();
+        drag.start_pos = event.position;
         let (camera, camera_transform): (&Camera, &GlobalTransform) = camera_query.single();
         for (entity, tile_transform, tile_global_transform, mut material) in tile_query.iter_mut() {
             if let (Some(lower_left), Some(upper_right)) = (
@@ -198,7 +198,7 @@ pub fn select_tile(
                 {
                     *material = materials.highlighted_tile.clone();
                     commands.entity(entity).insert(Selected {
-                        transform: tile_transform.clone(),
+                        transform: *tile_transform,
                     });
                 } else {
                     *material = materials.default_tile.clone();
