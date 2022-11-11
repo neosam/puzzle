@@ -144,7 +144,7 @@ pub fn drag_start_end(
     if mouse_button_input.just_pressed(MouseButton::Left) {
         drag.in_progress = true;
         for mut transform in selected_query.iter_mut() {
-            transform.translation.z = (*z_index_state).z_index_state;
+            transform.translation.z = z_index_state.z_index_state;
             z_index_state.z_index_state += 0.001;
         }
     }
