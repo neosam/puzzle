@@ -16,12 +16,12 @@ use bevy_inspector_egui::WorldInspectorPlugin;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
-        .add_plugin(WorldInspectorPlugin::new())
         .insert_resource(WindowDescriptor {
             fit_canvas_to_parent: true,
             ..default()
         })
+        .add_plugins(DefaultPlugins)
+        .add_plugin(WorldInspectorPlugin::new())
         .add_event::<event::SelectEvent>()
         .add_startup_system(system::setup)
         .add_system(system::select_tile)
