@@ -4,7 +4,9 @@
 // Feel free to delete this line.
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
 
+mod bundle;
 mod component;
+mod event;
 mod resource;
 mod system;
 mod util;
@@ -16,6 +18,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(WorldInspectorPlugin::new())
+        .add_event::<event::SelectEvent>()
         .add_startup_system(system::setup)
         .add_system(system::select_tile)
         .add_system(system::drag_start_end)

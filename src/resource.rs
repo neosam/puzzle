@@ -13,3 +13,8 @@ pub struct Materials {
     pub default_tile: Handle<StandardMaterial>,
     pub highlighted_tile: Handle<StandardMaterial>,
 }
+
+pub struct Selected {
+    pub part: Entity,
+    pub transform: Transform,
+}

@@ -4,6 +4,7 @@ use bevy::prelude::*;
 pub struct Tile;
 
 #[derive(Component)]
-pub struct Selected {
-    pub transform: Transform,
+pub struct Part {
+    pub center_position: Vec2,
+    pub size: Vec2,
 }
