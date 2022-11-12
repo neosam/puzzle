@@ -10,10 +10,12 @@ mod system;
 mod util;
 
 use bevy::prelude::*;
+use bevy_inspector_egui::WorldInspectorPlugin;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugin(WorldInspectorPlugin::new())
         .add_startup_system(system::setup)
         .add_system(system::select_tile)
         .add_system(system::drag_start_end)
